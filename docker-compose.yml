@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ayvo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ayvo_task
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ayvo-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      FRONTEND_URL: http://localhost:3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: ayvo_task
+      # Force polling-based file watching so code changes made from the
+      # Windows host through the bind mount are reliably picked up.
+      TSC_WATCHFILE: PriorityPollingInterval
+      TSC_WATCHDIRECTORY: DynamicPriorityPolling
+      CHOKIDAR_USEPOLLING: 'true'
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ayvo-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # Server-side fetches (from within the container) reach the backend
+      # via the docker network name.
+      API_URL: http://backend:3001
+      # Client-side (browser) fetches reach the backend via localhost,
+      # since the browser runs on the host, not inside the docker network.
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      # Force polling-based file watching so code changes made from the
+      # Windows host through the bind mount are reliably picked up.
+      WATCHPACK_POLLING: 'true'
+      CHOKIDAR_USEPOLLING: 'true'
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  postgres_data:
