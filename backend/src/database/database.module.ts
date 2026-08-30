@@ -15,7 +15,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
         password: config.get<string>('DB_PASSWORD', 'postgres'),
         database: config.get<string>('DB_NAME', 'ayvo_task'),
         autoLoadModels: true,
-        synchronize: true,
+        synchronize: false,
         logging: false,
       }),
     }),

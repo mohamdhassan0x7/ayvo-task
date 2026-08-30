@@ -8,7 +8,10 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ayvo_task
     ports:
-      - '5432:5432'
+      # Host port 5433 (not 5432) to avoid clashing with a native Postgres
+      # install on the host. Backend still reaches this over the docker
+      # network on the standard 5432 (DB_HOST=postgres, DB_PORT=5432 below).
+      - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
