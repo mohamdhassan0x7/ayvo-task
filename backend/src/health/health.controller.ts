@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 
 @Controller('health')
 export class HealthController {
@@ -7,6 +7,15 @@ export class HealthController {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Post()
+  checkWithBody(@Body() body: unknown) {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      received: body,
     };
   }
 }

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { getHealth } from "@/services/health.service";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,17 +19,9 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const health = await getHealth().catch((err: Error) => ({
-    status: "unreachable",
-    timestamp: err.message,
-  }));
-
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body suppressHydrationWarning>
-        <p style={{ fontSize: 12, opacity: 0.6 }}>
-          Backend health: {health.status} ({health.timestamp})
-        </p>
         <Providers>{children}</Providers>
       </body>
     </html>
